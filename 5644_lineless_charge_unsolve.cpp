@@ -112,18 +112,13 @@ int main() {
 			int Aidx = 0;
 			int tempB = 0;
 			int Bidx = 0;
-			/*for (int i = 0; i < A; i++) {
-				if (tempA < map[i][ay][ax]) {
-					tempA = map[i][ay][ax];
-					Aidx = i;
-				}
-				if (tempB < map[i][by][bx]) {
-					tempB = map[i][by][bx];
-					Bidx = i;
-				}
-			}*/
+			//BC가 하나일때
 
 			int temp_sum = 0;
+			int eAidx= 0;
+			int eBidx = 0;
+			int etempA = 0;
+			int etempB = 0;
 			for (int u = 0; u < A; u++) {
 				for (int w = 0; w < A; w++) {
 					if (temp_sum < map[u][ay][ax] + map[w][by][bx]) {
@@ -134,35 +129,22 @@ int main() {
 							tempA = map[u][ay][ax];
 							tempB = map[w][by][bx];
 						}
+						else if (u == w) {
+							//temp_sum = map[u][ay][ax] + map[w][by][bx];
+							eAidx = u;
+							eBidx = w;
+							etempA = map[u][ay][ax];
+							etempB = map[w][by][bx];
+						}
 					}
 				}
 			}
 
-
-			if (Aidx == Bidx && tempB != 0 && tempA != 0) {
-				if (sum_visited[by][bx] > 1 || sum_visited[ay][ax] > 1) {
-					if (sum_visited[by][bx] > 1) {
-						tempB = 0;
-						for (int j = 0; j < A; j++) {
-							if (j == Bidx)
-								continue;
-							tempB = max(tempB, map[j][by][bx]);
-						}
-					}
-					else if (sum_visited[ay][ax] > 1) {
-						tempA = 0;
-						for (int j = 0; j < A; j++) {
-							if (j == Aidx)
-								continue;
-							tempA = max(tempA, map[j][ay][ax]);
-						}
-					}						//같은 구역에 있지만 겹쳐있는경우
-				}
-				else if (sum_visited[by][bx] == 1 || sum_visited[ay][ax] == 1) {
-					tempA = tempA / 2;
-					tempB = tempB / 2;
-				}
+			if (tempA + tempB < etempA) {
+				tempA = etempA / 2;
+				tempB = etempA / 2;
 			}
+
 
 
 			va[m + 1] = tempA;
