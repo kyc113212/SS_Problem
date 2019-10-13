@@ -85,6 +85,7 @@ int main() {
 			v[i].push_back(data1(0, 0, false, depart_time[i], i));
 		}
 
+		int c_time = 0;
 		while (check_finish() == false) {
 			//1. 대기시간(tk) 줄인다.
 			//2. 접수창구 full인지 확인한 후 가장 접수창구에 넣는다
@@ -96,31 +97,54 @@ int main() {
 					if (v[i][0].time == 0)
 						continue;
 					v[i][0].time--;	//대기시간 줄여준다.
+					//여기서 한번에 시간을 줄여본다.
+				}
+			}
+			for (int i = 0; i < N; i++) {
+				if (using_recept[i] == 1) {
+					if (recept_space[i][0].time == 0)
+						continue;
+					recept_space[i][0].time--;
+				}
+			}
+			for (int i = 0; i < M; i++) {
+				if (using_repair[i] == 1) {
+					if (repair_space[i][0].time == 0)
+						continue;
+					repair_space[i][0].time--;
 				}
 			}
 
+
+
 			for (int i = 1; i <= K; i++) {//i는 사람
 				if (finish_depart[i] == 0 && v[i][0].time == 0) {
-					finish_depart[i] = 1;
 					if (check_recept() == true) {//recept가 full
+						finish_depart[i] = 1; //1013수정
 						wating_recept.push(waiting_data(i, 0));
 					}
 					else {
 						for (int j = 0; j < N; j++) {	//접수창구
-							if (using_recept[j] == 0) {
+							if (using_recept[j] == 0 && finish_depart[i] == 0 && recept_space[j].empty()) {
+								finish_depart[i] = 1;	//1013수정
 								using_recept[j] = 1;
 								recept_space[j].push_back(waiting_data(i, at[j]));
-								break;
+							}
+							else if (using_recept[j] == 0 && !recept_space[j].empty()) {
+								finish_depart[i] = 1;
+								using_recept[j] = 1;
+								recept_space[j][0].person_number = i;
+								recept_space[j][0].time = at[j];
 							}
 						}
 					}
-					
+
 				}
 			}
 
 			for (int i = 0; i < N; i++) {//i는 접수창구
 				if (using_recept[i] == 1) {
-					recept_space[i][0].time--;
+					//recept_space[i][0].time--;
 					if (recept_space[i][0].time == 0) {//recept 끝나면 repair로 감
 						v[recept_space[i][0].person_number][0].recept = i + 1;	//recept_space 기억
 						//정비창구로 이동
@@ -129,9 +153,16 @@ int main() {
 						}
 						else {
 							for (int j = 0; j < M; j++) {	//수리창구
-								if (using_repair[j] == 0) {
+								if (using_repair[j] == 0 && repair_space[j].empty()) {
 									using_repair[j] = 1;
 									repair_space[j].push_back(waiting_data(recept_space[i][0].person_number, bt[j]));
+									break;
+									//역에 push back이 두번됨
+								}
+								else if (using_repair[j] == 0 && !repair_space[j].empty()) {
+									using_repair[j] = 1;
+									repair_space[j][0].person_number = recept_space[i][0].person_number;
+									repair_space[j][0].time = bt[j];
 								}
 							}
 						}
@@ -152,7 +183,7 @@ int main() {
 
 			for (int i = 0; i < M; i++) {//i는 수리창구
 				if (using_repair[i] == 1) {
-					repair_space[i][0].time--;
+					//repair_space[i][0].time--;
 					if (repair_space[i][0].time == 0) { //repair 시간 다 끝나면 접수창구 확인하고 finish check
 						v[repair_space[i][0].person_number][0].repair = i + 1;
 						if (v[repair_space[i][0].person_number][0].repair == B && v[repair_space[i][0].person_number][0].recept == A) {
@@ -174,14 +205,19 @@ int main() {
 						}
 						//repair_space[i].pop_back();
 					}
-					
+
 				}
 			}
+
+			c_time++;
 
 
 		}
 
-		cout << "#" << tc << " " << ans << endl;
+		if(ans == 0)
+			cout << "#" << tc << " " << -1 << endl;
+		else
+			cout << "#" << tc << " " << ans << endl;
 
 
 	}
