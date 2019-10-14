@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -92,31 +93,8 @@ int main() {
 			//3. 다 차있을경우 queue에 넣는다.
 			//4. 접수창구에서 시간이 다 지난 경우 수리창구에 넣는다.
 			//5. 수리창구가 다 차있을경우 queue에 넣는다.
-			for (int i = 1; i <= K; i++) {
-				if (finish_depart[i] == 0) {
-					if (v[i][0].time == 0)
-						continue;
-					v[i][0].time--;	//대기시간 줄여준다.
-					//여기서 한번에 시간을 줄여본다.
-				}
-			}
-			for (int i = 0; i < N; i++) {
-				if (using_recept[i] == 1) {
-					if (recept_space[i][0].time == 0)
-						continue;
-					recept_space[i][0].time--;
-				}
-			}
-			for (int i = 0; i < M; i++) {
-				if (using_repair[i] == 1) {
-					if (repair_space[i][0].time == 0)
-						continue;
-					repair_space[i][0].time--;
-				}
-			}
 
-
-
+			//recept는 recept에서 모두 처리
 			for (int i = 1; i <= K; i++) {//i는 사람
 				if (finish_depart[i] == 0 && v[i][0].time == 0) {
 					if (check_recept() == true) {//recept가 full
@@ -138,16 +116,81 @@ int main() {
 							}
 						}
 					}
+				}
+				for (int j = 0; j < N; j++) {
+					if (using_recept[j] == 1) {
+						if (recept_space[j][0].time == 0) {
+							v[recept_space[j][0].person_number][0].recept = j + 1;	//recept_space 기억
+							if (check_repair() == true) {
+								wating_repair.push(waiting_data(recept_space[j][0].person_number, 0));
+							}
+							else {
+								for (int k = 0; k < M; k++) {	//수리창구
+									if (using_repair[k] == 0 && repair_space[k].empty()) {
+										using_repair[k] = 1;
+										repair_space[k].push_back(waiting_data(recept_space[j][0].person_number, bt[k]));
+										break;
+										//역에 push back이 두번됨
+									}
+									else if (using_repair[k] == 0 && !repair_space[k].empty()) {
+										using_repair[k] = 1;
+										repair_space[k][0].person_number = recept_space[j][0].person_number;
+										repair_space[k][0].time = bt[j];
+									}
+								}
+							}
+							if (!wating_recept.empty()) {
+								recept_space[j][0].person_number = wating_recept.front().person_number;
+								recept_space[j][0].time = at[j];
+								wating_recept.pop();
+							}
+							else {
+								using_recept[j] = 0;
+								recept_space[j][0].person_number = 0;
+								recept_space[j][0].time = 0;
+							}
+
+						}
+					}
+
+					for (int k = 0; k < M; k++) {//i는 수리창구
+						if (using_repair[k] == 1) {
+							//repair_space[i][0].time--;
+							if (repair_space[k][0].time == 0) { //repair 시간 다 끝나면 접수창구 확인하고 finish check
+								v[repair_space[k][0].person_number][0].repair = k + 1;
+								if (v[repair_space[k][0].person_number][0].repair == B && v[repair_space[k][0].person_number][0].recept == A) {
+									ans += repair_space[k][0].person_number;
+								}
+								finished[repair_space[k][0].person_number] = 1;
+								//using_repair[i] = 0;
+								//repair_space[i][0].person_number = 0;
+								//repair_space[i][0].time = 0;
+								if (!wating_repair.empty()) {
+									repair_space[k][0].person_number = wating_repair.front().person_number;
+									repair_space[k][0].time = bt[k];
+									wating_repair.pop();
+								}
+								else {
+									using_repair[k] = 0;
+									repair_space[k][0].person_number = 0;
+									repair_space[k][0].time = 0;
+								}
+								//repair_space[i].pop_back();
+							}
+
+						}
+					}
+
+
 
 				}
 			}
 
-			for (int i = 0; i < N; i++) {//i는 접수창구
+			/*for (int i = 0; i < N; i++) {//i는 접수창구
 				if (using_recept[i] == 1) {
 					//recept_space[i][0].time--;
 					if (recept_space[i][0].time == 0) {//recept 끝나면 repair로 감
 						v[recept_space[i][0].person_number][0].recept = i + 1;	//recept_space 기억
-						//정비창구로 이동
 						if (check_repair() == true) {
 							wating_repair.push(waiting_data(recept_space[i][0].person_number, 0));
 						}
@@ -207,14 +250,38 @@ int main() {
 					}
 
 				}
-			}
+			}*/
 
 			c_time++;
+
+			for (int i = 1; i <= K; i++) {
+				if (finish_depart[i] == 0) {
+					if (v[i][0].time == 0)
+						continue;
+					v[i][0].time--;	//대기시간 줄여준다.
+					//여기서 한번에 시간을 줄여본다.
+				}
+			}
+			for (int i = 0; i < N; i++) {
+				if (using_recept[i] == 1) {
+					if (recept_space[i][0].time == 0)
+						continue;
+					recept_space[i][0].time--;
+				}
+			}
+			for (int i = 0; i < M; i++) {
+				if (using_repair[i] == 1) {
+					if (repair_space[i][0].time == 0)
+						continue;
+					repair_space[i][0].time--;
+				}
+			}
+
 
 
 		}
 
-		if(ans == 0)
+		if (ans == 0)
 			cout << "#" << tc << " " << -1 << endl;
 		else
 			cout << "#" << tc << " " << ans << endl;
